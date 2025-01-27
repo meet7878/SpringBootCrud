@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.cargo.Entity.BusinessRequirement;
 import com.example.cargo.Entity.Customers;
+import com.example.cargo.Exeception.CustomerNotFoundException;
 import com.example.cargo.Repository.BusinessRequirementRepository;
 import com.example.cargo.Repository.CustomerRepository;
 
@@ -18,17 +19,17 @@ public class CustomerService {
 
 	@Autowired
 	private CustomerRepository customerRepository;
-	
+
 	@Autowired
 	private BusinessRequirementRepository businessRequirementRepository;
 
 	public Customers createCustomer(Customers customer) {
 		Customers cus = customerRepository.save(customer);
-		List<BusinessRequirement> bus = customer.getBusinessRequirements().stream().map(item->{
+		List<BusinessRequirement> bus = customer.getBusinessRequirements().stream().map(item -> {
 			item.setCustomer(cus);
 			return item;
 		}).toList();
-		
+
 		businessRequirementRepository.saveAll(bus);
 		return cus;
 	}
@@ -43,21 +44,17 @@ public class CustomerService {
 	}
 
 	public ResponseEntity<String> updateCustomer(Integer id, Customers customer) {
-		Optional<Customers> CustomersUpdate = customerRepository.findById(id);
+		Optional<Customers> existingCustomer = customerRepository.findById(id);
 		try {
-			if (CustomersUpdate.isPresent()) {
-				customer.setId(CustomersUpdate.get().getId());
+			if (existingCustomer.isPresent()) {
+				customer.setId(existingCustomer.get().getId());
 				customerRepository.save(customer);
-				return ResponseEntity.status(HttpStatus.OK).body("Update customer Data suceesFully" + " " + id);
-
+				return ResponseEntity.status(HttpStatus.OK).body("Update customer Data successfully for id: " + id);
 			} else {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body("Update customer Data Not suceesFully " + " " + id);
+				throw new CustomerNotFoundException("Customer with ID " + id + " not found.");
 			}
 		} catch (Exception e) {
-
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("An error occurred while updating customer data: " + e.getMessage());
+			throw new RuntimeException("An error occurred while updating customer data: " + e.getMessage());
 		}
 	}
 

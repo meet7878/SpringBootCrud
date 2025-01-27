@@ -21,7 +21,7 @@ import jakarta.validation.constraints.Pattern;
 public class Details {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	@Pattern(regexp = "M|F", message = "Sex should be 'M' or 'F'")
